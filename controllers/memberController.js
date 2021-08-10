@@ -255,7 +255,7 @@ router.put(
       ...result,
       ischecked: 99,
       userid: userid,
-      updated_at: getThaiDate(),
+      updated_at: Date(),
     };
 
     try {
@@ -321,7 +321,7 @@ router.put(
     const data = {
       ...result,
       ischecked: 10,
-      updated_at: getThaiDate(),
+      updated_at: Date(),
     };
 
     try {
@@ -424,7 +424,7 @@ router.put(
     const data = {
       ...result,
       ischecked: 999,
-      updated_at: getThaiDate(),
+      updated_at: Date(),
     };
 
     try {
@@ -506,7 +506,7 @@ router.put(
     const data = {
       ...result,
       ischecked: 99, //Status cancel
-      updated_at: getThaiDate(),
+      updated_at: Date(),
     };
 
     try {
@@ -544,7 +544,7 @@ function updatePaySlip(req, res, id) {
       photoref: req.file ? req.file.filename : "",
       ischecked: req.file ? 0 : -1,
       checkeid: 0,
-      updated_at: getThaiDate(),
+      updated_at: Date(),
     };
 
     console.log(JSON.stringify(data));

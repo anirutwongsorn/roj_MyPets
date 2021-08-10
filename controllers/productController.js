@@ -33,7 +33,9 @@ function getProductSaleSqlCommand() {
   sql +=
     "S.billno, S.typeid, S.price, S.datesale, S.nextdate, T.coinfee, T.reservedfee, T.nextday, T.priceup, T.maxprice, S.ownerid, U.fname, U.lname, ";
   sql += "U.bkaccno, U.bkaccname, U.bkacctype, U.bkname, U.bkbranch, ";
-  sql += "S.buyerid, S.photoref, S.ischecked , S.created_at, S.updated_at ";
+  sql += "S.buyerid, S.photoref, S.ischecked , ";
+  sql += "CONVERT_TZ(S.created_at,'+00:00','+07:00') as created_at, ";
+  sql += "CONVERT_TZ(S.updated_at,'+00:00','+07:00') as updated_at ";
   sql += "FROM products AS P ";
   sql += "JOIN product_mains AS S ON P.pid = S.pid ";
   sql += "JOIN product_types AS T ON S.typeid = T.typeid ";
@@ -274,7 +276,7 @@ router.put(
             ...result,
             ischecked: 0,
             buyerid: userid,
-            updated_at: getThaiDate(),
+            updated_at: Date(),
           };
 
           await db.product_mains.update(data, {
@@ -442,7 +444,7 @@ function updatePaySlip(req, res, id) {
       photoref: req.file ? req.file.filename : "",
       ischecked: req.file ? 1 : 0,
       buyerid: userid,
-      updated_at: getThaiDate(),
+      updated_at: Date(),
     };
 
     console.log(JSON.stringify(data));

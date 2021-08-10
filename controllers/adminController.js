@@ -21,7 +21,9 @@ function getProductSaleSqlCommand() {
     "S.billno, S.typeid, S.price, S.datesale, S.nextdate, T.coinfee, T.reservedfee, T.nextday, T.priceup, T.maxprice, S.ownerid, U.fname, U.lname, ";
   sql += "U.bkaccno, U.bkaccname, U.bkacctype, U.bkname, U.bkbranch, ";
   sql += "S.buyerid, S.photoref, U2.fname AS buyername, U2.lname AS buyerlastname, ";
-  sql += "S.ischecked , S.created_at, S.updated_at ";
+  sql += "S.ischecked , ";
+  sql += "CONVERT_TZ(S.created_at,'+00:00','+07:00') as created_at, ";
+  sql += "CONVERT_TZ(S.updated_at,'+00:00','+07:00') as updated_at ";
   sql += "FROM products AS P ";
   sql += "JOIN product_mains AS S ON P.pid = S.pid ";
   sql += "JOIN product_types AS T ON S.typeid = T.typeid ";
