@@ -239,8 +239,9 @@ router.put(
     }
 
     try {
+      var day = dateFormat(new Date(), "yyyy-mm-dd");
       var sql = getProductSaleSqlCommand();
-      sql += `WHERE S.ischecked = -1 AND S.pid = ${pid}`;
+      sql += `WHERE S.ischecked = -1 AND S.pid = ${pid} AND S.datesale <= '${day}'`;
 
       var product = await db.sequelize.query(sql, {
         type: db.sequelize.QueryTypes.SELECT,
@@ -249,8 +250,6 @@ router.put(
       let _pdcount = product.length;
       let _countSave = 0;
 
-      // console.log(_pdcount);
-      // console.log(_pdcount > qty);
       if (_pdcount < qty) {
         qty = _pdcount;
       }
