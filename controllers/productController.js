@@ -241,7 +241,8 @@ router.put(
     try {
       var day = dateFormat(new Date(), "yyyy-mm-dd");
       var sql = getProductSaleSqlCommand();
-      sql += `WHERE S.ischecked = -1 AND S.pid = ${pid} AND S.datesale <= '${day}'`;
+      sql += `WHERE S.ischecked = -1 AND S.pid = ${pid} AND S.datesale <= '${day}' `;
+      sql += `ORDER BY S.id `;
 
       var product = await db.sequelize.query(sql, {
         type: db.sequelize.QueryTypes.SELECT,
