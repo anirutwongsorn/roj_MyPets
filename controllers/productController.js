@@ -27,19 +27,36 @@ function getThaiDate() {
   return moment().tz("Asia/Bangkok").format();
 }
 
+// function getProductSaleSqlCommand() {
+//   var sql =
+//     "SELECT S.id, S.pid, P.typeid, P.title, P.pdesc1, P.pdesc2, P.pdesc3, P.pdesc4, P.pdesc5, P.image, P.image2, P.image3, P.mindisp, ";
+//   sql +=
+//     "S.billno, S.typeid, S.price, S.datesale, S.nextdate, T.coinfee, T.reservedfee, T.nextday, T.priceup, T.maxprice, S.ownerid, U.fname, U.lname, ";
+//   sql += "U.bkaccno, U.bkaccname, U.bkacctype, U.bkname, U.bkbranch, ";
+//   sql += "S.buyerid, S.photoref, S.ischecked , ";
+//   sql += "CONVERT_TZ(S.created_at,'+00:00','+7:00') as created_at, ";
+//   sql += "CONVERT_TZ(S.updated_at,'+00:00','+7:00') as updated_at ";
+//   sql += "FROM products AS P ";
+//   sql += "JOIN product_mains AS S ON P.pid = S.pid ";
+//   sql += "JOIN product_types AS T ON S.typeid = T.typeid ";
+//   sql += "JOIN members AS U ON S.ownerid = U.id ";
+//   return sql;
+// }
 function getProductSaleSqlCommand() {
   var sql =
     "SELECT S.id, S.pid, P.typeid, P.title, P.pdesc1, P.pdesc2, P.pdesc3, P.pdesc4, P.pdesc5, P.image, P.image2, P.image3, P.mindisp, ";
   sql +=
     "S.billno, S.typeid, S.price, S.datesale, S.nextdate, T.coinfee, T.reservedfee, T.nextday, T.priceup, T.maxprice, S.ownerid, U.fname, U.lname, ";
   sql += "U.bkaccno, U.bkaccname, U.bkacctype, U.bkname, U.bkbranch, ";
-  sql += "S.buyerid, S.photoref, S.ischecked , ";
-  sql += "CONVERT_TZ(S.created_at,'+00:00','+07:00') as created_at, ";
-  sql += "CONVERT_TZ(S.updated_at,'+00:00','+07:00') as updated_at ";
+  sql += "S.buyerid, S.photoref, U2.fname AS buyername, U2.lname AS buyerlastname, ";
+  sql += "S.ischecked , ";
+  sql += "CONVERT_TZ(S.created_at,'+00:00','+7:00') as created_at, ";
+  sql += "CONVERT_TZ(S.updated_at,'+00:00','+7:00') as updated_at ";
   sql += "FROM products AS P ";
   sql += "JOIN product_mains AS S ON P.pid = S.pid ";
   sql += "JOIN product_types AS T ON S.typeid = T.typeid ";
   sql += "JOIN members AS U ON S.ownerid = U.id ";
+  sql += "LEFT JOIN members AS U2 ON S.buyerid = U2.id ";
   return sql;
 }
 
@@ -276,7 +293,6 @@ router.put(
             ...result,
             ischecked: 0,
             buyerid: userid,
-            updated_at: Date(),
           };
 
           await db.product_mains.update(data, {

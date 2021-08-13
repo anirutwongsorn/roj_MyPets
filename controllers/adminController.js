@@ -22,8 +22,8 @@ function getProductSaleSqlCommand() {
   sql += "U.bkaccno, U.bkaccname, U.bkacctype, U.bkname, U.bkbranch, ";
   sql += "S.buyerid, S.photoref, U2.fname AS buyername, U2.lname AS buyerlastname, ";
   sql += "S.ischecked , ";
-  sql += "CONVERT_TZ(S.created_at,'+00:00','+07:00') as created_at, ";
-  sql += "CONVERT_TZ(S.updated_at,'+00:00','+07:00') as updated_at ";
+  sql += "CONVERT_TZ(S.created_at,'+00:00','+7:00') as created_at, ";
+  sql += "CONVERT_TZ(S.updated_at,'+00:00','+7:00') as updated_at ";
   sql += "FROM products AS P ";
   sql += "JOIN product_mains AS S ON P.pid = S.pid ";
   sql += "JOIN product_types AS T ON S.typeid = T.typeid ";
@@ -128,7 +128,7 @@ router.put(
         throw new Error("Transaction not found!");
       }
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      res.status(500).json({ message: err });
     }
   }
 );

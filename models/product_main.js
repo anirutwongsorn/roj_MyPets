@@ -28,13 +28,13 @@ module.exports = (sequelize, DataTypes) => {
       ischecked: DataTypes.INTEGER,
       iscancel: DataTypes.INTEGER,
       billref: DataTypes.STRING,
+      updated_at: DataTypes.DATE,
     },
     {
       sequelize,
       modelName: "product_mains",
       underscored: true,
       createdAt: false,
-      updatedAt: false,
     }
   );
   return product_mains;

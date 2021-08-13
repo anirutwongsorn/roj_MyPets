@@ -8,6 +8,7 @@ const db = require("../models");
 const authorization = require("../config/authorize");
 const { uuid } = require("uuidv4");
 const moment = require("moment-timezone");
+const bcrypt = require("bcrypt");
 
 let memAttr = [
   "id",
@@ -39,9 +40,14 @@ function getThaiDate() {
 
 function getCoinTransactionSQL() {
   var sql =
-    "SELECT C.id, C.userid, C.billno, C.transtype, C.transdate, C.coinval, C.photoref, C.ischecked, C.checkedid, M.fname, M.lname, M.phone, M2.phone AS Tel ";
-    sql += "FROM coin_transactions AS C LEFT JOIN members AS M ON C.userid = M.id ";
-    sql += "LEFT JOIN members AS M2 ON C.checkedid = M2.id ";
+    "SELECT C.id, C.userid, C.billno, C.transtype, C.transdate, C.coinval, ";
+  sql +=
+    "C.photoref, C.ischecked, C.checkedid, M.fname, M.lname, M.phone, M2.phone AS Tel, ";
+  sql += "CONVERT_TZ(C.created_at,'+00:00','+7:00') as created_at, ";
+  sql += "CONVERT_TZ(C.updated_at,'+00:00','+7:00') as updated_at ";
+  sql +=
+    "FROM coin_transactions AS C LEFT JOIN members AS M ON C.userid = M.id ";
+  sql += "LEFT JOIN members AS M2 ON C.checkedid = M2.id ";
   return sql;
 }
 
@@ -136,8 +142,8 @@ router.get("/member/coin_transaction", authorization, async (req, res) => {
   try {
     var sql = getCoinTransactionSQL();
     sql += `WHERE C.userid = ${userid} OR C.checkedid = ${userid} `;
-    sql += 'ORDER BY C.id DESC ';
-  
+    sql += "ORDER BY C.id DESC ";
+
     var transf = await db.sequelize.query(sql, {
       type: db.sequelize.QueryTypes.SELECT,
     });
@@ -528,6 +534,58 @@ router.put(
   }
 );
 
+router.put("/member/changepassword", authorization, async (req, res) => {
+  try {
+    const userid = req.id;
+    const oldpass = req.body.oldpass;
+    const newpass = req.body.newpass;
+
+    if (!newpass || !oldpass) {
+      return res.status(401).json({ message: "กรุณาระบุรหัสผ่าน" });
+    }
+
+    const member = await db.members.findOne({
+      where: { id: userid },
+      attributes: ["password"],
+    });
+    if (!member) {
+      return res.status(401).json({ message: "บัญชีผู้ใช้งานไม่มีอยู่ในระบบ" });
+    }
+
+    //===========Verify password=============
+    const dbPass = member.password;
+    const validPassword = await bcrypt.compare(oldpass, dbPass);
+    console.log(validPassword);
+    if (!validPassword) {
+      return res.status(401).json({
+        message: "รหัสผ่านเดิมไม่ถูกต้อง",
+      });
+    }
+
+    //=======HASH PASSWORD==================
+    const pass = await hashPassword(newpass);
+    var data = {
+      password: pass,
+    };
+
+    //=======UPDATE PASSWORD==================
+    const [updated] = await db.members.update(data, {
+      where: {
+        id: userid,
+      },
+    });
+    if (updated) {
+      //const updateMember = await db.members.findByPk(member.id);
+      console.log('Password changed');
+      res.status(200).json({ message: "Completed" });
+    } else {
+      throw new Error("Member not found!");
+    }
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+});
+
 //========Upload pay slip================
 function updatePaySlip(req, res, id) {
   upload(req, res, async (err) => {
@@ -645,6 +703,13 @@ function addDays(date, days) {
   var result = new Date(date);
   result.setDate(result.getDate() + days);
   return result;
+}
+
+async function hashPassword(userpass) {
+  // generate salt to hash password
+  const salt = await bcrypt.genSalt(10);
+  // now we set user password to hashed password
+  return await bcrypt.hash(userpass, salt);
 }
 
 module.exports = router;

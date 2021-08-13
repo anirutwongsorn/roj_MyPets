@@ -6,6 +6,9 @@ const db = require("../models");
 const bcrypt = require("bcrypt");
 const { uuid } = require("uuidv4");
 
+"use strict";
+const nodemailer = require("nodemailer");
+
 // router.get("/account/login", function (req, res, next) {
 //   // ใช้ค่า privateKey เป็น buffer ค่าที่อ่านได้จากไฟล์ private.key ในโฟลเดอร์ config
 //   const privateKey = fs.readFileSync(__dirname + "/../config/private.key");
@@ -100,7 +103,7 @@ router.post("/account/register", async (req, res) => {
   let pass = await hashPassword(req.body.password);
   req.body.password = pass;
 
-  console.log('recref: '+ req.body.recref);
+  console.log("recref: " + req.body.recref);
 
   //====Generate RefCode=========
   var uid = uuid();
@@ -109,12 +112,13 @@ router.post("/account/register", async (req, res) => {
   const data = {
     ...req.body,
     image: "",
+    status: 1,
     userref: chars[0].substring(2, 7),
   };
 
   try {
     //====Checking Username=========
-    var sql = 'SELECT phone FROM members WHERE phone='+ data.phone + ' ';
+    var sql = "SELECT phone FROM members WHERE phone=" + data.phone + " ";
     var chk_username = await db.sequelize.query(sql, {
       // replacements: { phone: data.phone },
       type: db.sequelize.QueryTypes.SELECT,
@@ -145,6 +149,96 @@ router.post("/account/register", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+router.post("/account/resetpassword", async (req, res) => {
+  const email = req.body.email;
+  const phone = req.body.phone;
+  const userref = req.body.userref;
+
+  if (!email || !phone || !userref) {
+    return res.status(500).json({ message: "กรุณาระบุข้อมูลเพื่อยืนยันตัวตน" });
+  }
+
+  //===========Looking username/password=============
+  const result = await db.members.findOne({
+    where: { username: phone, userref: userref, email: email },
+    attributes: ["id"],
+  });
+  if (!result) {
+    return res.status(404).json({
+      status: 404,
+      message: "ข้อมูลยืนยันตัวตนไม่ถูกต้อง",
+    });
+  }
+
+  //====Generate RefCode=========
+  const userid = result.id;
+  var uid = uuid();
+  const chars = uid.split("-");
+  const newpass = chars[0].substring(2, 7);
+
+  //=======HASH PASSWORD==================
+  const pass = await hashPassword(newpass);
+  var data = {
+    password: pass,
+  };
+
+  //=======UPDATE PASSWORD==================
+  const [updated] = await db.members.update(data, {
+    where: {
+      id: userid,
+    },
+  });
+  if (updated) {
+    //const updateMember = await db.members.findByPk(member.id);
+
+    try {
+      await sendEmailToUser("anirutwongsorn@gmail.com", newpass);
+      res.status(200).json({ message: "รีเซ็ตรหัสผ่านสำเร็จ" });
+    } catch (err) {
+      console.log("Error: " + err);
+      res.status(500).json({ message: err });
+    }
+  } else {
+    throw new Error("Member not found!");
+  }
+});
+
+async function sendEmailToUser(clientemail, message) {
+  // create reusable transporter object using the default SMTP transport
+  let transporter = nodemailer.createTransport({
+    host: "mail.clickmypets.com",
+    port: 25,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: "admin@clickmypets.com", // generated ethereal user
+      pass: "Xts769p&", // generated ethereal password
+    },
+    tls: {
+      // do not fail on invalid certs
+      rejectUnauthorized: false,
+    },
+  });
+
+  // send mail with defined transport object
+  let info = await transporter.sendMail({
+    from: '"System administrator" <admin@clickmypets.com>', // sender address
+    to: clientemail, // list of receivers
+    subject: "รีเซ็ตรหัสผ่าน", // Subject line
+    text: "รีเซ็ตรหัสผ่าน", // plain text body
+    html:
+      "<b>เรียนคุณ " +
+      clientemail +
+      "</b> <p> รหัสผ่านใหม่ของคุณคือ <b>" +
+      message +
+      "</b> </p> <p>อีเมลจากระบบ กรุณาอย่าตอบกลับ</p>",
+    // html body
+  });
+
+  console.log("Message sent: %s", info.messageId);
+
+  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+}
 
 async function hashPassword(userpass) {
   // generate salt to hash password

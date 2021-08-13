@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken"); // ใช้งาน jwt module
 const fs = require("fs"); // ใช้งาน file system module ของ nodejs
-const { json } = require("express");
+//const { json } = require("express");
 
 // สร้าง middleware ฟังก์ชั่นสำหรับ verification token
 const authorization = (req, res, next) => {

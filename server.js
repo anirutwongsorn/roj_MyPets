@@ -32,4 +32,5 @@ app.listen(PORT, () => {
   console.log("App listening on port " + PORT);
   console.log("App listening on env " + env);
   console.log("Press Ctrl+C to quit.");
+  console.log(Date());
 });

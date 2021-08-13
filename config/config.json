@@ -4,14 +4,18 @@
     "storage": "./dev.sqlite3"
   },
   "test": {
-    "dialect": "sqlite",
-    "storage": "./dev.sqlite3"
-  },
-  "production": {
     "username": "anirut",
     "password": "yD$7n3v3",
     "database": "click_mypets1",
     "host": "localhost",
+    "port": "3306",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "sa",
+    "password": "Ir0nman1",
+    "database": "click_mypets1",
+    "host": "119.59.115.198",
     "port": "3306",
     "dialect": "mysql"
   },
